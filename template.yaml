@@ -8,7 +8,7 @@ Globals:
     MemorySize: 128
 
 Resources:
-  HelloWorldFunction:
+  CrosswordyFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
@@ -17,19 +17,19 @@ Resources:
       Architectures:
         - arm64
       Events:
-        HelloWorld:
+        Discord:
           Type: Api
           Properties:
-            Path: /hello
-            Method: get
+            Path: /interactions
+            Method: post
 
 Outputs:
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  CrosswordyApi:
+    Description: "API Gateway endpoint URL for Prod stage for Crosswordy function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/interactions"
+  CrosswordyFunction:
+    Description: "Crosswordy Lambda Function ARN"
+    Value: !GetAtt CrosswordyFunction.Arn
+  CrosswordyFunctionIamRole:
+    Description: "Implicit IAM Role created for Crosswordy function"
+    Value: !GetAtt CrosswordyFunctionRole.Arn

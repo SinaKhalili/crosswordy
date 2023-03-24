@@ -1,42 +1,36 @@
 import json
+import os
 
-# import requests
+from nacl.exceptions import BadSignatureError
+from nacl.signing import VerifyKey
+
+from commands import command_handler
+
+DISCORD_PUBLIC_KEY = os.environ["DISCORD_PUBLIC_KEY"]
+LOGGING = True
 
 
 def lambda_handler(event, context):
-    """Sample pure Lambda function
+    try:
+        body = json.loads(event["body"])
 
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
+        signature = event["headers"]["x-signature-ed25519"]
+        timestamp = event["headers"]["x-signature-timestamp"]
 
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+        verify_key = VerifyKey(bytes.fromhex(DISCORD_PUBLIC_KEY))
+        message = timestamp + json.dumps(body, separators=(",", ":"))
 
-    context: object, required
-        Lambda Context runtime methods and attributes
+        try:
+            verify_key.verify(message.encode(), signature=bytes.fromhex(signature))
+        except BadSignatureError:
+            return {"statusCode": 401, "body": json.dumps("invalid request signature")}
 
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
-
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
-        }),
-    }
+        t = body["type"]
+        if t == 1:  # ping
+            return {"statusCode": 200, "body": json.dumps({"type": 1})}
+        elif t == 2:
+            return command_handler(body)
+        else:
+            return {"statusCode": 400, "body": json.dumps("unhandled request type")}
+    except:
+        raise
